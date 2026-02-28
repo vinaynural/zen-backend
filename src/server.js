@@ -25,6 +25,8 @@ const fastify = Fastify({
 await fastify.register(cors, {
   origin: env.CORS_ORIGIN === '*' ? true : env.CORS_ORIGIN.split(','),
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
 });
 
 await fastify.register(helmet, {
