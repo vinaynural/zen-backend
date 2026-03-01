@@ -1,6 +1,7 @@
 import clerkAuth from '../middleware/clerk-auth.js';
-import supabase from '../services/supabase.js';
+import prisma from '../config/db.js';
 import { sendDailyDigest } from '../services/resend.js';
+import { clerkClient } from '@clerk/fastify';
 
 /**
  * Email route plugin.
@@ -17,58 +18,50 @@ export default async function emailRoutes(fastify) {
     { preHandler: [clerkAuth] },
     async (request, reply) => {
       try {
-        // Look up the user's email from Supabase
-        const { data: user, error: userErr } = await supabase
-          .from('users')
-          .select('email, name')
-          .eq('id', request.userId)
-          .single();
+        // Look up the user's email from Clerk
+        const user = await clerkClient.users.getUser(request.userId);
+        const email = user.emailAddresses[0]?.emailAddress;
 
-        if (userErr || !user) {
-          request.log.error({ userErr }, 'User not found for daily digest');
+        if (!email) {
+          request.log.error('User email not found for daily digest');
           return reply.code(404).send({
             error: 'Not Found',
-            message: 'User not found',
+            message: 'User email not found',
           });
         }
 
         // Gather today's stats
-        const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-        const [habitsResult, tasksResult, journalResult] = await Promise.all([
-          supabase
-            .from('habits')
-            .select('id, completed', { count: 'exact' })
-            .eq('user_id', request.userId)
-            .gte('updated_at', `${today}T00:00:00`)
-            .lte('updated_at', `${today}T23:59:59`),
-          supabase
-            .from('tasks')
-            .select('id, completed', { count: 'exact' })
-            .eq('user_id', request.userId)
-            .gte('updated_at', `${today}T00:00:00`)
-            .lte('updated_at', `${today}T23:59:59`),
-          supabase
-            .from('journal')
-            .select('id', { count: 'exact' })
-            .eq('user_id', request.userId)
-            .gte('created_at', `${today}T00:00:00`)
-            .lte('created_at', `${today}T23:59:59`),
+        const [habitsCompleted, habitsTotal, tasksCompleted, tasksTotal, journalEntries] = await Promise.all([
+          prisma.habit.count({
+            where: { user_id: request.userId, is_active: true, last_completed_at: { gte: today } }
+          }),
+          prisma.habit.count({
+            where: { user_id: request.userId, is_active: true }
+          }),
+          prisma.task.count({
+            where: { user_id: request.userId, is_archived: false, status: 'completed', completion_date: { gte: today } }
+          }),
+          prisma.task.count({
+            where: { user_id: request.userId, is_archived: false }
+          }),
+          prisma.journal.count({
+            where: { user_id: request.userId, created_at: { gte: today } }
+          }),
         ]);
 
-        const habits = habitsResult.data || [];
-        const tasks = tasksResult.data || [];
-
         const stats = {
-          habitsCompleted: habits.filter((h) => h.completed).length,
-          habitsTotal: habits.length,
-          tasksCompleted: tasks.filter((t) => t.completed).length,
-          tasksTotal: tasks.length,
-          journalEntries: journalResult.data?.length || 0,
+          habitsCompleted,
+          habitsTotal,
+          tasksCompleted,
+          tasksTotal,
+          journalEntries,
           streak: '0', // Can be computed from historical data in a future iteration
         };
 
-        await sendDailyDigest(user.email, stats);
+        await sendDailyDigest(email, stats);
 
         return reply.send({
           success: true,
@@ -91,17 +84,14 @@ export default async function emailRoutes(fastify) {
     { preHandler: [clerkAuth] },
     async (request, reply) => {
       try {
-        const { data: user, error: userErr } = await supabase
-          .from('users')
-          .select('email, name')
-          .eq('id', request.userId)
-          .single();
+        const user = await clerkClient.users.getUser(request.userId);
+        const email = user.emailAddresses[0]?.emailAddress;
 
-        if (userErr || !user) {
-          request.log.error({ userErr }, 'User not found for test email');
+        if (!email) {
+          request.log.error('User email not found for test email');
           return reply.code(404).send({
             error: 'Not Found',
-            message: 'User not found',
+            message: 'User email not found',
           });
         }
 
@@ -115,11 +105,11 @@ export default async function emailRoutes(fastify) {
           streak: '14',
         };
 
-        await sendDailyDigest(user.email, testStats);
+        await sendDailyDigest(email, testStats);
 
         return reply.send({
           success: true,
-          message: `Test email sent to ${user.email}`,
+          message: `Test email sent to ${email}`,
         });
       } catch (err) {
         request.log.error({ err }, 'Failed to send test email');

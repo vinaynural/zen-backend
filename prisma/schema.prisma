@@ -1,0 +1,258 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Habit {
+  id                    String    @id @default(uuid()) @db.Uuid
+  user_id               String    @db.Uuid
+  title                 String
+  description           String?
+  tag                   Int?      @default(0)
+  category              String?
+  priority              Int?      @default(1)
+  difficulty_level      Int?      @default(1)
+  total_minutes_spent   Int?      @default(0)
+  impact_score          Float?    @default(0.0)
+  frequency_type        String?   @default("daily")
+  frequency_value       String?
+  reminder_time         String?
+  reminder_days_list    Int[]
+  start_date            DateTime? @db.Timestamptz
+  end_date              DateTime? @db.Timestamptz
+  color_hex             String?
+  icon_name             String?
+  is_active             Boolean?  @default(true)
+  is_archived           Boolean?  @default(false)
+  is_good_habit         Boolean?  @default(true)
+  streak_current        Int?      @default(0)
+  streak_max            Int?      @default(0)
+  total_completions     Int?      @default(0)
+  last_completed_at     DateTime? @db.Timestamptz
+  completion_percentage Float?    @default(0.0)
+  notes_template        String?
+  habit_group_id        String?
+  milestone_target      Int?
+  created_at            DateTime? @default(now()) @db.Timestamptz
+  updated_at            DateTime? @default(now()) @db.Timestamptz
+  deleted_at            DateTime? @db.Timestamptz
+  version               Int?      @default(1)
+  source_device         String?
+  app_version           String?
+
+  @@map("habits")
+}
+
+model Dsa {
+  id                     String    @id @default(uuid()) @db.Uuid
+  user_id                String    @db.Uuid
+  title                  String
+  problem_url            String?
+  difficulty             Int?      @default(0)
+  topic                  Int?      @default(0)
+  platform               String?
+  status                 String?   @default("solved")
+  time_complexity        String?
+  space_complexity       String?
+  time_complexity_value  Float?
+  space_complexity_value Float?
+  solution_code          String?
+  notes                  String?
+  solved_at              DateTime? @default(now()) @db.Timestamptz
+  updated_at             DateTime? @default(now()) @db.Timestamptz
+  deleted_at             DateTime? @db.Timestamptz
+  attempt_count          Int?      @default(1)
+  time_taken_minutes     Int?
+  tags                   String[]
+  is_favorite            Boolean?  @default(false)
+  related_problem_ids    String[]
+  related_topic_ids      String[]
+  video_link             String?
+  intuition              String?
+  edge_cases             String?
+  code_language          String?   @default("cpp")
+  time_complexity_notes  String?
+  space_complexity_notes String?
+  is_company_tagged      Boolean?  @default(false)
+  last_reviewed_at       DateTime? @db.Timestamptz
+  review_interval_days   Int?      @default(1)
+  mastery_level          Float?    @default(0.0)
+  source_device          String?
+  app_version            String?
+
+  @@map("dsa")
+}
+
+model Health {
+  id                        String    @id @default(uuid()) @db.Uuid
+  user_id                   String    @db.Uuid
+  date                      DateTime  @db.Date
+  updated_at                DateTime? @default(now()) @db.Timestamptz
+  deleted_at                DateTime? @db.Timestamptz
+  workout_done              Boolean?  @default(false)
+  sleep_minutes             Int?      @default(0)
+  deep_sleep_minutes        Int?
+  rem_sleep_minutes         Int?
+  light_sleep_minutes       Int?
+  water_ml                  Int?      @default(0)
+  water_glasses             Int?      @default(0)
+  steps                     Int?      @default(0)
+  calories_burned           Int?      @default(0)
+  calories_consumed         Int?      @default(0)
+  sleep_quality             Int?      @default(5)
+  mood                      Int?      @default(5)
+  stress_level              Int?      @default(5)
+  weight                    Float?
+  height                    Float?
+  bmi                       Float?
+  body_fat_percentage       Float?
+  muscle_mass               Float?
+  heart_rate_avg            Int?
+  hrv                       Int?
+  blood_pressure_sys        Int?
+  blood_pressure_dia        Int?
+  blood_glucose             Float?
+  oxygen_saturation         Float?
+  respiratory_rate          Int?
+  body_temperature          Float?
+  skin_temp                 Float?
+  protein_grams             Float?
+  carbs_grams               Float?
+  fats_grams                Float?
+  exercise_type             String?
+  exercise_duration_minutes Int?
+  period_day                Int?
+  caffeine_mg               Int?
+  waist_circumference       Float?
+  medication_taken          String[]
+  symptoms                  String[]
+  notes                     String?
+  source_device             String?
+  app_version               String?
+
+  @@map("health")
+}
+
+model Journal {
+  id                String    @id @default(uuid()) @db.Uuid
+  user_id           String    @db.Uuid
+  title             String?
+  content           String
+  mood              Int?      @default(5)
+  mood_score        Int?      @default(5)
+  tags              String[]
+  weather           String?
+  location_name     String?
+  latitude          Float?
+  longitude         Float?
+  is_private        Boolean?  @default(false)
+  is_favorite       Boolean?  @default(false)
+  images            String[]
+  audio_note_url    String?
+  related_goal_id   String?
+  highlight_of_day  String?
+  gratitude_notes   String?
+  voice_to_text_raw String?
+  word_count        Int?      @default(0)
+  sentiment_score   Float?
+  word_frequency    Json?
+  last_modified     DateTime? @default(now()) @db.Timestamptz
+  updated_at        DateTime? @default(now()) @db.Timestamptz
+  deleted_at        DateTime? @db.Timestamptz
+  source_device     String?
+  app_version       String?
+  is_sync_enabled   Boolean?  @default(true)
+
+  @@map("journal")
+}
+
+model Task {
+  id                  String    @id @default(uuid()) @db.Uuid
+  user_id             String    @db.Uuid
+  title               String
+  description         String?
+  priority            String?   @default("medium")
+  status              String?   @default("todo")
+  risk_level          Int?      @default(1)
+  effort_score        Int?      @default(1)
+  due_date            DateTime? @db.Timestamptz
+  start_date          DateTime? @db.Timestamptz
+  completion_date     DateTime? @db.Timestamptz
+  estimated_minutes   Int?      @default(0)
+  actual_minutes      Int?      @default(0)
+  category            String?
+  is_recurring        Boolean?  @default(false)
+  recurrence_rule     String?
+  parent_task_id      String?   @db.Uuid
+  dependency_ids      String[]
+  review_notes        String?
+  assigned_to_user_id String?   @db.Uuid
+  project_id          String?
+  is_blocking         Boolean?  @default(false)
+  is_public           Boolean?  @default(false)
+  subtasks            Json?     @default("{}")
+  reminders           Json?     @default("[]")
+  tags                String[]
+  is_archived         Boolean?  @default(false)
+  version             Int?      @default(1)
+  created_at          DateTime? @default(now()) @db.Timestamptz
+  updated_at          DateTime? @default(now()) @db.Timestamptz
+  deleted_at          DateTime? @db.Timestamptz
+  source_device       String?
+  app_version         String?
+
+  @@map("tasks")
+}
+
+model Goal {
+  id                     String    @id @default(uuid()) @db.Uuid
+  user_id                String    @db.Uuid
+  title                  String
+  description            String?
+  category               Int?      @default(0)
+  status                 String?   @default("active")
+  start_date             DateTime? @db.Timestamptz
+  target_date            DateTime? @db.Timestamptz
+  achieved_date          DateTime? @db.Timestamptz
+  target_value           Float?    @default(100.0)
+  current_value          Float?    @default(0.0)
+  unit                   String?
+  progress               Float?    @default(0.0)
+  milestones             Json?     @default("{}")
+  rewards                String[]
+  is_public              Boolean?  @default(false)
+  vision_board_image_url String?
+  priority_rank          Int?      @default(1)
+  impact_score           Float?    @default(0.0)
+  is_long_term           Boolean?  @default(false)
+  tags                   String[]
+  created_at             DateTime? @default(now()) @db.Timestamptz
+  updated_at             DateTime? @default(now()) @db.Timestamptz
+  deleted_at             DateTime? @db.Timestamptz
+  source_device          String?
+  app_version            String?
+
+  @@map("goals")
+}
+
+model Notification {
+  id         String    @id @default(uuid()) @db.Uuid
+  user_id    String    @db.Uuid
+  title      String
+  body       String
+  type       String
+  is_read    Boolean?  @default(false)
+  payload    Json?     @default("{}")
+  created_at DateTime? @default(now()) @db.Timestamptz
+
+  @@map("notifications")
+}

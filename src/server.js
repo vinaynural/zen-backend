@@ -1,3 +1,5 @@
+import './instrument.js';
+import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
@@ -8,6 +10,14 @@ import syncRoutes from './routes/sync.js';
 import authRoutes from './routes/auth.js';
 import emailRoutes from './routes/email.js';
 import notificationRoutes from './routes/notifications.js';
+
+// REST API Routes
+import habitsRoutes from './routes/api/habits.js';
+import tasksRoutes from './routes/api/tasks.js';
+import goalsRoutes from './routes/api/goals.js';
+import healthRoutes from './routes/api/health.js';
+import journalRoutes from './routes/api/journal.js';
+import storageRoutes from './routes/api/storage.js';
 
 // ── Validate environment ──────────────────────────────────────────────────
 validateEnv();
@@ -51,6 +61,18 @@ await fastify.register(syncRoutes, { prefix: '/sync' });
 await fastify.register(authRoutes);
 await fastify.register(emailRoutes, { prefix: '/email' });
 await fastify.register(notificationRoutes, { prefix: '/notifications' });
+
+await fastify.register(habitsRoutes, { prefix: '/api/habits' });
+await fastify.register(tasksRoutes, { prefix: '/api/tasks' });
+await fastify.register(goalsRoutes, { prefix: '/api/goals' });
+await fastify.register(healthRoutes, { prefix: '/api/health' });
+await fastify.register(journalRoutes, { prefix: '/api/journal' });
+await fastify.register(storageRoutes, { prefix: '/api/storage' });
+
+import * as Sentry from '@sentry/node';
+
+// Hook Sentry error handler to fastify
+Sentry.setupFastifyErrorHandler(fastify);
 
 // ── Global error handler ──────────────────────────────────────────────────
 fastify.setErrorHandler((error, request, reply) => {
